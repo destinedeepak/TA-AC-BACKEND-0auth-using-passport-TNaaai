@@ -19,6 +19,7 @@ articleSchema.pre('save', function (next){
     this.slug = this.title.toLowerCase().split(' ').filter(ele=>{
         if(ele.trim()) return ele;
     }).join('-')
+    next();
 })
 
 module.exports = mongoose.model('Article', articleSchema);
