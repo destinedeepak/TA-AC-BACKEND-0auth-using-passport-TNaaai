@@ -6,7 +6,8 @@ var logger = require('morgan');
 var mongoose = require('mongoose');
 var session = require('express-session');
 var flash = require('connect-flash');
-var MongoStore = require('connect-mongo')(session);
+var MongoStore = require('connect-mongo');
+var auth = require('./middlewares/auth')
 
 require('dotenv').config();
 
@@ -14,12 +15,15 @@ var indexRouter = require('./routes/index');
 var articlesRouter = require('./routes/articles');
 var commentRouter = require('./routes/comments');
 var userRouter = require('./routes/users');
+const passport = require('passport');
 
 mongoose.connect(
-  'mongodb://localhost/blog',
+  'mongodb://localhost/blogWithOauthDB',
   { useNewUrlParser: true, useUnifiedTopology: true },
   (err) => console.log(err ? err : 'Database connected!')
 );
+
+require('./modules/passport')
 
 var app = express();
 
@@ -39,9 +43,14 @@ app.use(
     secret: process.env.SECRET,
     resave: true,
     saveUninitialized: true,
-    store: new MongoStore({mongooseConnection: mongoose.connection})
+    store: MongoStore.create({ mongoUrl: 'mongodb://localhost/blogWithOauthDB' })
   })
 );
+
+app.use(auth.userInfo);
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 // add flash
 app.use(flash());
